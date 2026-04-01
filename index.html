@@ -449,6 +449,60 @@
 
   .finale-date.visible { opacity: 1; }
 
+  /* PHOTO SECTION */
+  #photo-section {
+    background: var(--deep);
+  }
+
+  .photo-wrap {
+    position: relative;
+    width: min(680px, 92vw);
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 1.8s ease, transform 1.8s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .photo-wrap.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .couple-photo {
+    width: 100%;
+    display: block;
+    border-radius: 4px;
+    filter: saturate(0.55) brightness(0.75) sepia(0.3) hue-rotate(185deg);
+  }
+
+  .photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 18, 52, 0.52);
+    border-radius: 4px;
+    mix-blend-mode: multiply;
+  }
+
+  .photo-caption {
+    position: absolute;
+    bottom: 24px;
+    left: 0; right: 0;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 1s 0.8s ease;
+  }
+
+  .photo-wrap.visible .photo-caption {
+    opacity: 1;
+  }
+
+  .photo-caption-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(14px, 2vw, 18px);
+    color: rgba(184, 206, 240, 0.7);
+    letter-spacing: 0.1em;
+  }
+
   /* MUSIC PLAYER — subtle floating pill */
   .music-pill {
     position: fixed;
@@ -938,6 +992,23 @@
   <div class="div-line"></div>
 </div>
 
+<!-- ══ PHOTO SECTION ══ -->
+<section id="photo-section" style="padding:0; min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;">
+  <div class="photo-wrap" id="photoWrap">
+    <img src="photo.jpg" alt="" class="couple-photo" id="couplePhoto">
+    <div class="photo-overlay"></div>
+    <div class="photo-caption">
+      <span class="photo-caption-text">un movimento perfetto del mondo</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">
+  <div class="div-line"></div>
+  <div class="div-dot"></div>
+  <div class="div-line"></div>
+</div>
+
 <!-- ══ GRAND FINALE ══ -->
 <section id="finale">
   <div class="finale-top">act one · end</div>
@@ -1153,7 +1224,7 @@ drawPendulum(0);
 
 // ── INTERSECTION OBSERVER — scroll reveals ──
 const revealEls = document.querySelectorAll(
-  '.giant-quote, .quote-attr, .split-col, .letter-block, .pull-quote, .finale-top, .finale-poem, .finale-giant, .finale-closing, .finale-date, .bench-item'
+  '.giant-quote, .quote-attr, .split-col, .letter-block, .pull-quote, .finale-top, .finale-poem, .finale-giant, .finale-closing, .finale-date, .bench-item, .photo-wrap'
 );
 
 const wordwalls = document.querySelectorAll('#wordwall');
