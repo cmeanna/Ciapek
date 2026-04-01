@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jan — The Theory of Everything</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inconsolata:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ink: #0a0e1f;
+    --deep: #060a18;
+    --blue1: #0d1630;
+    --blue2: #14254a;
+    --blue3: #1e3470;
+    --mid: #2a4a9a;
+    --light: #4a72cc;
+    --pale: #8aaee0;
+    --ghost: #b8cef0;
+    --white: #e8eeff;
+    --accent: #c8d8f8;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--deep);
+    color: var(--white);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed;
+    width: 6px; height: 6px;
+    background: var(--pale);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, opacity 0.3s;
+    mix-blend-mode: screen;
+  }
+
+  .cursor-ring {
+    position: fixed;
+    width: 32px; height: 32px;
+    border: 1px solid rgba(138, 174, 224, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease-out, width 0.2s, height 0.2s;
+  }
+
+  /* CANVAS BACKGROUNDS */
+  canvas.bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* SECTIONS */
+  section {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+    overflow: hidden;
+  }
+
+  /* ── OPENING ── */
+  #opening {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .opener-label {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--mid);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeIn 1s 0.5s forwards;
+  }
+
+  .opener-name {
+    font-size: clamp(100px, 20vw, 220px);
+    font-weight: 300;
+    line-height: 0.85;
+    color: var(--white);
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: riseUp 1.4s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    position: relative;
+  }
+
+  .opener-name::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 60px; height: 1px;
+    background: var(--mid);
+  }
+
+  .opener-sub {
+    font-style: italic;
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--pale);
+    margin-top: 32px;
+    opacity: 0;
+    animation: fadeIn 1s 1.2s forwards;
+    max-width: 500px;
+  }
+
+  .opener-date {
+    font-family: 'Inconsolata', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--blue3);
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeIn 1s 1.8s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeIn 1s 2.5s forwards;
+  }
+
+  .scroll-hint span {
+    font-family: 'Inconsolata', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--blue3);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--blue3), transparent);
+    animation: scrollPulse 2s 2.5s infinite;
+  }
+
+  /* ── GIANT QUOTE SECTIONS ── */
+  .quote-section {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .giant-quote {
+    font-size: clamp(28px, 5.5vw, 72px);
+    font-weight: 300;
+    line-height: 1.15;
+    max-width: 1100px;
+    color: var(--white);
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .giant-quote.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .giant-quote em {
+    color: var(--pale);
+    font-style: italic;
+  }
+
+  .giant-quote strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .quote-attr {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--blue3);
+    margin-top: 32px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s 0.3s ease, transform 1s 0.3s ease;
+  }
+
+  .quote-attr.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── SPLIT SECTION ── */
+  .split-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .split-section { grid-template-columns: 1fr; gap: 48px; }
+  }
+
+  .split-col {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+
+  .split-col.visible { opacity: 1; transform: translateY(0); }
+  .split-col:nth-child(2) { transition-delay: 0.2s; }
+
+  .split-label {
+    font-family: 'Inconsolata', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--mid);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .split-text {
+    font-size: clamp(16px, 2vw, 20px);
+    line-height: 1.8;
+    color: var(--ghost);
+    font-weight: 300;
+  }
+
+  .split-text em { color: var(--pale); font-style: italic; }
+
+  /* ── FRACTAL SECTION ── */
+  #fractal-section {
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+  }
+
+  .fractal-canvas-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0.15;
+  }
+
+  /* ── WORD WALL ── */
+  #wordwall {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 120px 40px;
+  }
+
+  .word-river {
+    overflow: hidden;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .word-line {
+    display: block;
+    font-size: clamp(36px, 7vw, 96px);
+    font-weight: 300;
+    white-space: nowrap;
+    transform: translateY(110%);
+    transition: transform 1s cubic-bezier(0.16,1,0.3,1);
+    color: var(--white);
+    letter-spacing: -0.01em;
+  }
+
+  .word-line.alt { color: var(--blue3); font-style: italic; }
+  .word-line.accent { color: var(--pale); }
+
+  .word-river.visible .word-line { transform: translateY(0); }
+  .word-river:nth-child(2) .word-line { transition-delay: 0.08s; }
+  .word-river:nth-child(3) .word-line { transition-delay: 0.16s; }
+  .word-river:nth-child(4) .word-line { transition-delay: 0.24s; }
+  .word-river:nth-child(5) .word-line { transition-delay: 0.32s; }
+  .word-river:nth-child(6) .word-line { transition-delay: 0.40s; }
+  .word-river:nth-child(7) .word-line { transition-delay: 0.48s; }
+  .word-river:nth-child(8) .word-line { transition-delay: 0.56s; }
+
+  /* ── OCEAN SECTION ── */
+  #ocean-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ocean-canvas-wrap {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LETTER SECTION ── */
+  #letter-section {
+    flex-direction: column;
+    align-items: center;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .letter-block {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+    width: 100%;
+  }
+
+  .letter-block.visible { opacity: 1; transform: translateY(0); }
+
+  .letter-opening {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--mid);
+    text-transform: uppercase;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  .letter-para {
+    font-size: clamp(17px, 2.2vw, 22px);
+    line-height: 1.9;
+    color: var(--ghost);
+    font-weight: 300;
+    margin-bottom: 32px;
+  }
+
+  .letter-para em { color: var(--pale); font-style: italic; }
+  .letter-para strong { color: var(--accent); font-weight: 400; }
+
+  .letter-sign {
+    font-style: italic;
+    font-size: clamp(20px, 3vw, 32px);
+    color: var(--pale);
+    text-align: right;
+    margin-top: 56px;
+  }
+
+  /* ── PENDULUM SECTION ── */
+  #pendulum-section {
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+  }
+
+  /* ── FINALE ── */
+  #finale {
+    flex-direction: column;
+    text-align: center;
+    min-height: 100vh;
+  }
+
+  .finale-top {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--blue3);
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .finale-top.visible { opacity: 1; }
+
+  .finale-poem {
+    font-size: clamp(18px, 3vw, 36px);
+    line-height: 2;
+    font-style: italic;
+    color: var(--ghost);
+    max-width: 700px;
+    margin: 0 auto 80px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1.4s 0.2s ease, transform 1.4s 0.2s ease;
+  }
+
+  .finale-poem.visible { opacity: 1; transform: translateY(0); }
+  .finale-poem strong { color: var(--white); font-style: normal; font-weight: 300; }
+
+  .finale-giant {
+    font-size: clamp(60px, 15vw, 180px);
+    font-weight: 300;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--blue3);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    margin-bottom: 24px;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 1.4s 0.4s ease, transform 1.4s 0.4s ease, -webkit-text-stroke 0.5s;
+  }
+
+  .finale-giant.visible {
+    opacity: 1;
+    transform: scale(1);
+    -webkit-text-stroke: 1px var(--pale);
+  }
+
+  .finale-closing {
+    font-style: italic;
+    font-size: clamp(16px, 2.5vw, 26px);
+    color: var(--pale);
+    margin-top: 40px;
+    opacity: 0;
+    transition: opacity 1.2s 0.8s ease;
+  }
+
+  .finale-closing.visible { opacity: 1; }
+
+  .finale-date {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--blue3);
+    margin-top: 60px;
+    opacity: 0;
+    transition: opacity 1s 1.2s ease;
+  }
+
+  .finale-date.visible { opacity: 1; }
+
+  /* MUSIC PLAYER — subtle floating pill */
+  .music-pill {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: rgba(10, 14, 31, 0.85);
+    border: 1px solid var(--blue2);
+    border-radius: 40px;
+    padding: 0;
+    overflow: hidden;
+    width: min(420px, calc(100vw - 40px));
+    backdrop-filter: blur(12px);
+    opacity: 0;
+    animation: fadeIn 1s 3s forwards;
+  }
+
+  /* DIVIDERS */
+  .section-divider {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 40px;
+    height: 60px;
+  }
+
+  .div-line {
+    flex: 1;
+    height: 1px;
+    background: var(--blue2);
+  }
+
+  .div-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--blue3);
+    margin: 0 20px;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+
+  @keyframes riseUp {
+    from { opacity: 0; transform: translateY(60px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.3); }
+  }
+
+  /* HORIZONTAL SCROLL MARQUEE */
+  .marquee-wrap {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    border-top: 1px solid var(--blue2);
+    border-bottom: 1px solid var(--blue2);
+    padding: 16px 0;
+    background: var(--blue1);
+  }
+
+  .marquee-track {
+    display: flex;
+    white-space: nowrap;
+    animation: marquee 28s linear infinite;
+    gap: 60px;
+  }
+
+  .marquee-item {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--blue3);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .marquee-item.lit { color: var(--mid); }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* PENCHES / benches */
+  .bench-visual {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .bench-row {
+    display: flex;
+    gap: 60px;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .bench-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .bench-item.visible { opacity: 1; transform: translateY(0); }
+  .bench-item:nth-child(2) { transition-delay: 0.15s; }
+  .bench-item:nth-child(3) { transition-delay: 0.3s; }
+
+  .bench-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--blue3);
+  }
+
+  .bench-dot.filled { background: var(--mid); border-color: var(--mid); }
+
+  .bench-label {
+    font-family: 'Inconsolata', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--blue3);
+    text-transform: uppercase;
+  }
+
+  /* COORDINATES */
+  .coords {
+    font-family: 'Inconsolata', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--blue3);
+    margin-top: 12px;
+  }
+
+  /* HIGHLIGHTED PULL QUOTE */
+  .pull-quote {
+    border-left: 2px solid var(--mid);
+    padding: 24px 32px;
+    margin: 60px 0;
+    background: rgba(20, 37, 74, 0.3);
+    border-radius: 0 8px 8px 0;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 1s ease, transform 1s ease;
+    max-width: 700px;
+  }
+
+  .pull-quote.visible { opacity: 1; transform: translateX(0); }
+
+  .pull-quote-text {
+    font-size: clamp(18px, 2.5vw, 26px);
+    font-style: italic;
+    line-height: 1.65;
+    color: var(--ghost);
+  }
+
+  .pull-quote-text em { color: var(--pale); }
+
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<canvas class="bg" id="bgCanvas"></canvas>
+
+<!-- ══ OPENING ══ -->
+<section id="opening">
+  <div class="opener-label">a letter — a universe — a theory</div>
+  <div class="opener-name">Jan</div>
+  <div class="opener-sub">one syllable. just a sigh. an opening of the mouth.</div>
+  <div class="opener-date">17 · V · 2025 — ∞</div>
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">ocean world</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">blue marble</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">theory of everything</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">double pendulum</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">jan e anna</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">da mi basia mille</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">17 maggio 2025</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">theory of everything</span>
+    <span class="marquee-item lit">·</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">ocean world</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">blue marble</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">theory of everything</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">double pendulum</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">jan e anna</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">da mi basia mille</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">17 maggio 2025</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">theory of everything</span>
+    <span class="marquee-item lit">·</span>
+  </div>
+</div>
+
+<!-- ══ GIANT QUOTE 1 ══ -->
+<section class="quote-section" style="min-height:80vh;">
+  <div style="max-width:1100px; width:100%;">
+    <div class="giant-quote">
+      <em>The ocean doesn't just touch us.</em><br>
+      It <strong>engulfs</strong> us.
+    </div>
+    <div class="quote-attr">Anna → Jan, winter 2025</div>
+
+    <div class="pull-quote" style="margin-top:80px;">
+      <div class="pull-quote-text">
+        "The oceanic dimension is cosmic —<br>
+        it's not just one of the four elements.<br>
+        <em>It's the thread that binds them all.</em>"
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WORD WALL 1 — the sea or space ══ -->
+<section id="wordwall" style="background: var(--blue1);">
+  <div class="word-river"><span class="word-line">if you could choose —</span></div>
+  <div class="word-river"><span class="word-line alt">the sea</span></div>
+  <div class="word-river"><span class="word-line">or</span></div>
+  <div class="word-river"><span class="word-line accent">space?</span></div>
+  <div class="word-river"><span class="word-line alt" style="font-size: clamp(14px, 2vw, 22px); margin-top:32px; color: var(--blue3);">— the question that started everything —</span></div>
+</section>
+
+<!-- ══ SPLIT — Jan's answer ══ -->
+<section class="quote-section">
+  <div class="split-section">
+    <div class="split-col">
+      <div class="split-label">Jan wrote</div>
+      <div class="split-text">
+        "Space seems like the best choice at first — but its size and complexity could not be comprehended by a human mind. One would simply <em>cease being a person</em> if he explored space in its entirety."
+      </div>
+    </div>
+    <div class="split-col">
+      <div class="split-label">Anna answered</div>
+      <div class="split-text">
+        "NASA calls us an <em>'ocean world'</em> — a blue marble. It's unsettling, almost existential, to realize that our essence is not rooted in the solid or the mobile, but in the liquid. And if you've ever dabbled in fluid mechanics, you know there's nothing quite as unpredictable as a fluid."
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider">
+  <div class="div-line"></div>
+  <div class="div-dot"></div>
+  <div class="div-line"></div>
+</div>
+
+<!-- ══ OCEAN SECTION — wave canvas ══ -->
+<section id="ocean-section">
+  <canvas id="waveCanvas" style="position:absolute;bottom:0;left:0;width:100%;pointer-events:none;z-index:0;"></canvas>
+  <div style="position:relative;z-index:1;text-align:center;">
+    <div class="giant-quote" style="font-size: clamp(20px, 4vw, 56px); max-width: 800px; margin:0 auto;">
+      "We define ourselves by the land —<br>yet we <em>float</em> on it.<br><strong>We surf it.</strong>"
+    </div>
+    <div class="quote-attr" style="margin-top:48px;">Michelet · Rolland · Freud · Anna</div>
+  </div>
+</section>
+
+<!-- ══ JOURNAL OF PERFECT MOVEMENTS ══ -->
+<section class="quote-section" style="background: var(--blue1);">
+  <div style="max-width:900px; width:100%;">
+    <div class="split-label" style="text-align:left; margin-bottom:32px;">from the journal of perfect movements of the world</div>
+    <div class="giant-quote" style="font-size:clamp(22px, 4vw, 52px);">
+      Often <em>static</em>, for a few seconds,<br>
+      just for me.<br>
+      <strong>Silent, fleeting, and eternal</strong><br>
+      all at once.
+    </div>
+    <div style="margin-top:60px;">
+      <div class="giant-quote" style="font-size:clamp(16px, 2.5vw, 28px); color: var(--ghost);">
+        "One day, if you've captured any, I'd love to see<br>
+        some of your own <em>Perfect Movements of the World.</em>"
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WORD WALL 2 — beauty ══ -->
+<section id="wordwall" style="padding: 80px 40px;">
+  <div class="word-river"><span class="word-line">beauty</span></div>
+  <div class="word-river"><span class="word-line alt">is a form</span></div>
+  <div class="word-river"><span class="word-line accent">free from any forms</span></div>
+  <div class="word-river"><span class="word-line alt" style="font-size:clamp(14px,1.8vw,20px); color:var(--blue3);">— Gombrowicz, as read by Jan —</span></div>
+</section>
+
+<!-- ══ PENDULUM SECTION ══ -->
+<section id="pendulum-section">
+  <canvas id="pendulumCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+  <div style="position:relative; z-index:2; text-align:center; max-width:900px;">
+    <div class="giant-quote" style="font-size:clamp(22px,4vw,60px);">
+      "I imagine the chaotic possibilities of our lives<br>
+      as the branching paths of the Odyssey —<br>
+      <em>an infinite field of mathematical fractals.</em>"
+    </div>
+    <div class="quote-attr">Anna to Jan · on destiny and double pendulums</div>
+  </div>
+</section>
+
+<!-- ══ THE BENCHES ══ -->
+<section class="quote-section" style="background:var(--blue1); flex-direction:column;">
+  <div style="max-width:1000px; width:100%; text-align:center;">
+
+    <div class="giant-quote" style="font-size:clamp(28px,5.5vw,80px); text-align:center;">
+      There are <em>benches.</em>
+    </div>
+    <div class="giant-quote" style="font-size:clamp(16px,2.5vw,30px); margin-top:32px; color:var(--ghost);">
+      Tables where our glasses sit apart,<br>
+      touched by <em>other hands, by other mouths.</em>
+    </div>
+
+    <div class="bench-visual" style="margin-top:80px;">
+      <div class="bench-row">
+        <div class="bench-item">
+          <div class="bench-dot"></div>
+          <div class="bench-label">Serock</div>
+          <div class="coords">52.5197° N, 21.0642° E</div>
+        </div>
+        <div class="bench-item" style="opacity:1; transform:none;">
+          <svg width="80" height="12" viewBox="0 0 80 12" fill="none">
+            <line x1="0" y1="6" x2="70" y2="6" stroke="#1e3470" stroke-width="1" stroke-dasharray="4 4"/>
+            <circle cx="40" cy="6" r="3" fill="#2a4a9a"/>
+          </svg>
+        </div>
+        <div class="bench-item">
+          <div class="bench-dot filled"></div>
+          <div class="bench-label">Via Coste 6, Marche</div>
+          <div class="coords">43.6167° N, 13.5167° E</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="giant-quote" style="font-size:clamp(20px,3.5vw,48px); margin-top:60px;">
+      "I don't live in those destiny bifurcations.<br>
+      <strong>I live in the version from which this letter comes.</strong>"
+    </div>
+  </div>
+</section>
+
+<!-- ══ DIRAC WIND ══ -->
+<section class="quote-section">
+  <div style="max-width:900px;">
+    <div class="giant-quote" style="font-size:clamp(24px,4.5vw,64px);">
+      "It took just one gust of cold wind<br>
+      from the <em>North</em> —<br>
+      to fling open the windows<br>
+      of a room left dusty for years."
+    </div>
+    <div class="quote-attr">Anna · the room · the Northern wind</div>
+
+    <div class="pull-quote" style="margin-top:60px;">
+      <div class="pull-quote-text">
+        "You condense, in your gestures, in your voice,<br>
+        the determinism and indeterminism of the universe.<br>
+        <em>You are my theory of everything.</em>"
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WORD WALL 3 ══ -->
+<section id="wordwall" style="background:var(--deep); padding:100px 40px;">
+  <div class="word-river"><span class="word-line">when I met you</span></div>
+  <div class="word-river"><span class="word-line alt">I started to believe</span></div>
+  <div class="word-river"><span class="word-line accent">in Destiny.</span></div>
+</section>
+
+<!-- ══ JAN'S ROSE ══ -->
+<section class="quote-section" style="background:var(--blue1);">
+  <div style="max-width:900px; text-align:center;">
+    <div class="split-label" style="text-align:center; margin-bottom:40px;">Jan wrote back</div>
+    <div class="giant-quote" style="font-size:clamp(20px,3.5vw,50px); text-align:center; font-style:italic;">
+      "…if someone spoke your name aloud,<br>
+      I would feel it as<br>
+      <strong>'if a rose fell through an open window.'"</strong>
+    </div>
+    <div class="quote-attr" style="text-align:center; margin-top:40px;">Ti amo — Jasiek</div>
+  </div>
+</section>
+
+<!-- MARQUEE 2 -->
+<div class="marquee-wrap">
+  <div class="marquee-track" style="animation-direction: reverse;">
+    <span class="marquee-item">una sillaba</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">porci</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">il diario dei movimenti perfetti del mondo</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">la teoria di tutto</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">wet kisses and sighs of love</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">a straw hearth</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">una sillaba</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">porci</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">il diario dei movimenti perfetti del mondo</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">la teoria di tutto</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">wet kisses and sighs of love</span>
+    <span class="marquee-item lit">·</span>
+    <span class="marquee-item">a straw hearth</span>
+    <span class="marquee-item lit">·</span>
+  </div>
+</div>
+
+<!-- ══ ROTTERDAM WIND ══ -->
+<section class="quote-section">
+  <div style="max-width:900px;">
+    <div class="split-label">Rotterdam · late October</div>
+    <div style="margin-top:24px;" class="giant-quote" style="font-size:clamp(18px,3vw,42px);">
+      "Tonight, I only wish the wind<br>
+      would carry me away.<br>
+      If I close my eyes,<br>
+      <em>it almost does.</em>"
+    </div>
+    <div style="margin-top:60px;" class="giant-quote" style="font-size:clamp(16px,2.5vw,32px); color:var(--ghost);">
+      "I slip silently beside you —<br>
+      toward the silent corner<br>
+      where the world stops making noise —<br>
+      <strong>where his collarbone meets his jugular.</strong>"
+    </div>
+  </div>
+</section>
+
+<!-- ══ LETTER — Bucharest ══ -->
+<section id="letter-section">
+  <div class="letter-block">
+    <div class="letter-opening">Jan · from an empty restaurant in Bucharest</div>
+    <div class="letter-para">
+      "This email is very chaotic, similar to my mind as of late —
+      I have to jump from startup to startup, from task to task.
+      The only time when I am focused on only one thing is
+      <em>when I am with you.</em>
+    </div>
+    <div class="letter-para">
+      Then, I only focus on loving you,
+      and the love spreads through all parts of my body continuously.
+      <strong>Suddenly, I lose the need to jump into something else.</strong>"
+    </div>
+    <div class="letter-sign">I think about you, — Jan</div>
+  </div>
+</section>
+
+<div class="section-divider">
+  <div class="div-line"></div>
+  <div class="div-dot"></div>
+  <div class="div-line"></div>
+</div>
+
+<!-- ══ GRAND FINALE ══ -->
+<section id="finale">
+  <div class="finale-top">act one · end</div>
+  <div class="finale-poem">
+    "The waves crash in the distance.<br>
+    A straw hearth warms a wooden table.<br>
+    Our legs, <strong>an avviticchiato tangle of yarn.</strong><br>
+    With my eyes, with my hands, with my mouth,<br>
+    I reveal to you my formula<br>
+    for the Theory of Everything.<br>
+    You smile. You answer:<br>
+    <strong>'Me too.'"</strong>
+  </div>
+
+  <div class="finale-giant">Jan.</div>
+
+  <div class="finale-closing">
+    buon compleanno, my theory of everything.
+  </div>
+  <div class="finale-date">da Anna · con tutto · 2025</div>
+</section>
+
+<!-- MUSIC — SoundCloud floating pill -->
+<div class="music-pill">
+  <iframe
+    width="100%"
+    height="80"
+    scrolling="no"
+    frameborder="no"
+    allow="autoplay"
+    src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/marcocastello-sc/porci&color=%231e2d5a&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false">
+  </iframe>
+</div>
+
+<script>
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) *.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+// ── STAR FIELD ──
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+let stars = [];
+
+function resizeBg() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 200; i++) {
+    stars.push({
+      x: Math.random() * bgCanvas.width,
+      y: Math.random() * bgCanvas.height,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random() * 0.7 + 0.1,
+      sp: Math.random() * 0.003 + 0.001,
+      ph: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function drawBg(t) {
+  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+  stars.forEach(s => {
+    const a = s.a * (0.4 + 0.6 * Math.sin(t * s.sp + s.ph));
+    bgCtx.beginPath();
+    bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(140, 180, 255, ${a})`;
+    bgCtx.fill();
+  });
+  requestAnimationFrame(drawBg);
+}
+
+resizeBg(); initStars();
+window.addEventListener('resize', () => { resizeBg(); initStars(); });
+requestAnimationFrame(drawBg);
+
+// ── WAVE CANVAS ──
+const waveCanvas = document.getElementById('waveCanvas');
+const wCtx = waveCanvas.getContext('2d');
+
+function resizeWave() {
+  waveCanvas.width = waveCanvas.offsetWidth;
+  waveCanvas.height = 200;
+}
+
+function drawWaves(t) {
+  if (!waveCanvas.offsetParent) { requestAnimationFrame(() => drawWaves(t + 0.01)); return; }
+  wCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+  const w = waveCanvas.width;
+  const layers = [
+    { amp: 18, freq: 0.008, speed: 0.4, color: 'rgba(14,37,112,0.5)', y: 120 },
+    { amp: 12, freq: 0.012, speed: 0.6, color: 'rgba(26,52,150,0.4)', y: 140 },
+    { amp: 8, freq: 0.018, speed: 0.9, color: 'rgba(42,74,154,0.3)', y: 160 },
+  ];
+  layers.forEach(l => {
+    wCtx.beginPath();
+    wCtx.moveTo(0, waveCanvas.height);
+    for (let x = 0; x <= w; x++) {
+      const y = l.y + Math.sin(x * l.freq + t * l.speed) * l.amp;
+      wCtx.lineTo(x, y);
+    }
+    wCtx.lineTo(w, waveCanvas.height);
+    wCtx.closePath();
+    wCtx.fillStyle = l.color;
+    wCtx.fill();
+  });
+  requestAnimationFrame(() => drawWaves(t + 0.015));
+}
+
+resizeWave();
+window.addEventListener('resize', resizeWave);
+drawWaves(0);
+
+// ── DOUBLE PENDULUM ──
+const pCanvas = document.getElementById('pendulumCanvas');
+const pCtx = pCanvas.getContext('2d');
+let pTrail = [];
+
+function resizePendulum() {
+  pCanvas.width = pCanvas.offsetWidth || window.innerWidth;
+  pCanvas.height = pCanvas.offsetHeight || window.innerHeight;
+}
+
+const pState = {
+  th1: Math.PI / 2 + 0.1,
+  th2: Math.PI / 2 + 0.3,
+  w1: 0, w2: 0,
+  L1: 0, L2: 0, m1: 1, m2: 1, g: 9.8
+};
+
+function pendulumStep(dt) {
+  const { th1, th2, w1, w2, L1, L2, m1, m2, g } = pState;
+  const d = th1 - th2;
+  const cosD = Math.cos(d), sinD = Math.sin(d);
+  const denom1 = (2 * m1 + m2) * L1 - m2 * L1 * cosD * cosD;
+  const denom2 = (L2 / L1) * denom1;
+  const a1 = (-g * (2 * m1 + m2) * Math.sin(th1) - m2 * g * Math.sin(th1 - 2 * th2)
+    - 2 * sinD * m2 * (w2 * w2 * L2 + w1 * w1 * L1 * cosD)) / denom1;
+  const a2 = (2 * sinD * (w1 * w1 * L1 * (m1 + m2) + g * (m1 + m2) * Math.cos(th1)
+    + w2 * w2 * L2 * m2 * cosD)) / denom2;
+  pState.w1 += a1 * dt;
+  pState.w2 += a2 * dt;
+  pState.th1 += pState.w1 * dt;
+  pState.th2 += pState.w2 * dt;
+}
+
+function drawPendulum(t) {
+  if (!pCanvas.offsetParent) { requestAnimationFrame(() => drawPendulum(t + 0.016)); return; }
+  const w = pCanvas.width, h = pCanvas.height;
+  const cx = w / 2, cy = h * 0.32;
+  pState.L1 = h * 0.22; pState.L2 = h * 0.22;
+
+  pendulumStep(0.025);
+
+  const x1 = cx + pState.L1 * Math.sin(pState.th1);
+  const y1 = cy + pState.L1 * Math.cos(pState.th1);
+  const x2 = x1 + pState.L2 * Math.sin(pState.th2);
+  const y2 = y1 + pState.L2 * Math.cos(pState.th2);
+
+  pTrail.push({ x: x2, y: y2 });
+  if (pTrail.length > 600) pTrail.shift();
+
+  pCtx.clearRect(0, 0, w, h);
+
+  // Trail
+  for (let i = 1; i < pTrail.length; i++) {
+    const alpha = (i / pTrail.length) * 0.35;
+    pCtx.beginPath();
+    pCtx.moveTo(pTrail[i - 1].x, pTrail[i - 1].y);
+    pCtx.lineTo(pTrail[i].x, pTrail[i].y);
+    pCtx.strokeStyle = `rgba(74, 114, 204, ${alpha})`;
+    pCtx.lineWidth = 1;
+    pCtx.stroke();
+  }
+
+  // Rods
+  pCtx.strokeStyle = 'rgba(42, 74, 154, 0.4)';
+  pCtx.lineWidth = 1;
+  pCtx.beginPath(); pCtx.moveTo(cx, cy); pCtx.lineTo(x1, y1); pCtx.stroke();
+  pCtx.beginPath(); pCtx.moveTo(x1, y1); pCtx.lineTo(x2, y2); pCtx.stroke();
+
+  // Bobs
+  pCtx.beginPath(); pCtx.arc(x1, y1, 4, 0, Math.PI * 2);
+  pCtx.fillStyle = 'rgba(42, 74, 154, 0.5)'; pCtx.fill();
+  pCtx.beginPath(); pCtx.arc(x2, y2, 4, 0, Math.PI * 2);
+  pCtx.fillStyle = 'rgba(74, 114, 204, 0.7)'; pCtx.fill();
+
+  requestAnimationFrame(() => drawPendulum(t + 0.016));
+}
+
+resizePendulum();
+window.addEventListener('resize', () => { resizePendulum(); pTrail = []; });
+drawPendulum(0);
+
+// ── INTERSECTION OBSERVER — scroll reveals ──
+const revealEls = document.querySelectorAll(
+  '.giant-quote, .quote-attr, .split-col, .letter-block, .pull-quote, .finale-top, .finale-poem, .finale-giant, .finale-closing, .finale-date, .bench-item'
+);
+
+const wordwalls = document.querySelectorAll('#wordwall');
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+revealEls.forEach(el => io.observe(el));
+
+const wio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.word-river').forEach(r => r.classList.add('visible'));
+    }
+  });
+}, { threshold: 0.2 });
+
+wordwalls.forEach(ww => wio.observe(ww));
+
+</script>
+</body>
+</html>
